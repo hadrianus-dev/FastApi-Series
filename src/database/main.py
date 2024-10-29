@@ -1,10 +1,10 @@
-from sqlalchemy import text
-from sqlmodel import create_engine
+from sqlmodel import SQLModel, create_engine
 from sqlalchemy.ext.asyncio import AsyncEngine
-from uvicorn import Config
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.orm import sessionmaker
 from src.config import Config
 
-engine = AsyncEngine(
+async_engine = AsyncEngine(
     create_engine(
         url=Config.DATABASE_URL,
         echo=True
@@ -12,8 +12,13 @@ engine = AsyncEngine(
 )
 
 async def init_db():
-    async with engine.begin() as conn:
-        statement = text("SELECT 'hallo';")
-        reuslt = await conn.execute(statement)
+    async with async_engine.begin() as conn:
+        #from src.books.models import Book
+        #await conn.run_sync(Book.metadata.create_all)
+        await conn.run_sync(SQLModel.metadata.create_all)
 
-        print(reuslt.all())
+async def get_session() -> AsyncSession:
+    
+    Session = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+    async with Session() as session:
+        yield session
