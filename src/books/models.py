@@ -28,6 +28,9 @@ class Book(SQLModel, table=True):
         )
     )
 
+    class Config:
+        orm_mode = True
+
     def __reduce__(self) -> str | tuple[Any, ...]:
         return super().__reduce__()
 
