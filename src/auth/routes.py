@@ -1,6 +1,8 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from fastapi import APIRouter, status, Depends
 from fastapi.responses import JSONResponse
+
+from src.api.v1.dependencies import RefreshTokenBearer
 from .schemes import UserCreateSchema, UserLoginSchema, UserSchema
 from .services import UserService
 from src.database.main import get_session
@@ -42,7 +44,7 @@ async def login(login_data: UserLoginSchema, session: AsyncSession = Depends(get
                 'email': user.email,
                 'uid': str(user.uid)
             },
-            refresh_token = True,
+            refresh = True,
             expiry = timedelta(days = 2)
         )
 
@@ -59,3 +61,19 @@ async def login(login_data: UserLoginSchema, session: AsyncSession = Depends(get
             status_code = status.HTTP_200_OK
         )
     raise HTTPException(status_code = status.HTTP_403_FORBIDDEN, detail = 'Invalid credentials: Ivalid Email or Password')
+
+
+@auth_router.get("/refresh_token", status_code=status.HTTP_200_OK)
+async def refresh_access_token(token_data: dict = Depends(RefreshTokenBearer())):
+    """
+    Refreshes an access token for a user who has a valid refresh token.
+    """
+    if token_data["exp"] < datetime.now().timestamp():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+
+    access_token = create_access_token(user_data=token_data["user"])
+
+    return JSONResponse(
+        content={"message": "Token refreshed successfully", "access_token": access_token},
+        status_code=status.HTTP_200_OK,
+    )
