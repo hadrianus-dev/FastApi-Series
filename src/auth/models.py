@@ -10,7 +10,9 @@ class User(SQLModel, table=True):
     )
     username: str = Field(str, nullable=False, unique=True, index=True)
     email: str = Field(str, nullable=False, unique=True)
-    password: str = Field(str, nullable=False, unique=True)
+    password: str = Field(str, nullable=False, unique=True, exclude=True)
+    first_name: str = Field(str, nullable=True)
+    last_name: str = Field(str, nullable=True)
     is_verified: bool = Field(default=False)
     created_at: datetime = Field(
         sa_column=Column(
