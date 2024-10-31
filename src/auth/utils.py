@@ -18,15 +18,13 @@ def generate_password_hash(password: str) -> str:
 def verify_password(password: str, hashed_password: str) -> bool:
     return password_context.verify(password, hashed_password)
 
-def create_access_token(user_data: dict, expiry: timedelta = None, refresh_token: bool = False) -> str:
+def create_access_token(user_data: dict, expiry: timedelta = None, refresh: bool = False) -> str:
     payload = {}
 
     payload['user'] = user_data
     payload['exp'] = datetime.now() + (expiry if expiry is not None else timedelta(seconds=ACCESS_TOKEN_EXPIRE))
     payload['jti'] = str(uuid4())
-
-    if refresh_token:
-        payload['refresh_token'] = str(uuid4())
+    payload['refresh'] = refresh
 
     token = jwt.encode(
         payload = payload,
